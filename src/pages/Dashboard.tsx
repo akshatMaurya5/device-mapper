@@ -3,6 +3,8 @@
 import type React from "react"
 import { useState } from "react"
 import axios from "axios"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface FormData {
     name: string
@@ -26,7 +28,7 @@ export default function StoreForm() {
     })
 
     // const baseUrl = "http://localhost:3000/v1"
-    const baseUrl = "https://api.supereps.ai/v1"
+    const baseUrl = "https://api.storefox.ai/v1"
 
     const [idForMapping, setIdForMapping] = useState<string>("")
     const [tokenForMapping, setTokenForMapping] = useState<string>("")
@@ -52,10 +54,13 @@ export default function StoreForm() {
             const count = response.data.data.stores.length || -1;
             console.log("count during api call", count);
 
+            toast.success("Store count fetched successfully!");
+
             return { success, count: count + 1 };
         } catch (error) {
             console.error("Error fetching store count:", error);
-            return { success: false, count: -1 }; // Return a failure state
+            toast.error("Error fetching store count.");
+            return { success: false, count: -1 };
         }
     }
 
@@ -77,18 +82,17 @@ export default function StoreForm() {
 
             const success = response.data.success;
 
-            // Set confirmation message based on the response
             if (success) {
-                setConfirmationMessage(`Store created successfully with ID: ${response.data.store.insertedId}`);
+                toast.success(`Store created successfully with ID: ${response.data.store.insertedId}`);
             } else {
-                setConfirmationMessage("An error occurred while creating the store.");
+                toast.error("An error occurred while creating the store.");
             }
 
             return success;
         } catch (error) {
             console.error("Error creating store:", error);
-            setConfirmationMessage("An error occurred while creating the store.");
-            return false; // Return a failure state
+            toast.error("An error occurred while creating the store.");
+            return false;
         }
     }
 
@@ -103,7 +107,6 @@ export default function StoreForm() {
 
         formData.store_id = count.toString()
 
-        // if(formData)
         console.log(formData)
 
         if (success) {
@@ -114,10 +117,8 @@ export default function StoreForm() {
                 setConfirmationMessage("Store created successfully")
             }
         }
-        // Here you would typically send the data to an API or perform some action
     }
 
-    // Function to reset the form
     const handleReset = () => {
         setFormData({
             name: "",
@@ -140,205 +141,214 @@ export default function StoreForm() {
             url = `${baseUrl}/conversations/updateDeviceInfo?deviceId=${idForMapping}`
         }
 
-        const response = await axios.post(url, {}, {
-            headers: { "Authorization": `Bearer ${tokenForMapping}` }
-        })
+        try {
+            const response = await axios.post(url, {}, {
+                headers: { "Authorization": `Bearer ${tokenForMapping}` }
+            })
 
-        console.log("response", response)
+            console.log("response", response)
 
-        // Set the mapping message based on the response
-        if (response.data.success === "ok") {
-            // Extract the message from the response
-            const message = response.data.data; // Updated to show the data directly
-            setMappingMessage(message);
-        } else {
-            setMappingMessage("An error occurred while updating devices.");
+            if (response.data.success === "ok") {
+                const message = response.data.data;
+                setMappingMessage(message);
+                toast.success("Device mapping updated successfully!"); // Success toast
+            } else {
+                setMappingMessage("An error occurred while updating devices.");
+                toast.error("An error occurred while updating devices."); // Error toast
+            }
+        } catch (error) {
+            console.error("Error during device mapping:", error);
+            toast.error("Error during device mapping."); // Error toast
         }
     }
 
-
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
-                        Store Name
-                    </label>
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    />
+        <>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
+                            Store Name
+                        </label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="city" className="block text-sm font-medium text-gray-300 mb-1">
+                            City
+                        </label>
+                        <input
+                            type="text"
+                            id="city"
+                            name="city"
+                            value={formData.city}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </div>
                 </div>
-                <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-gray-300 mb-1">
-                        City
-                    </label>
-                    <input
-                        type="text"
-                        id="city"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    />
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="region" className="block text-sm font-medium text-gray-300 mb-1">
+                            Region (Optional)
+                        </label>
+                        <input
+                            type="text"
+                            id="region"
+                            name="region"
+                            value={formData.region}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="token" className="block text-sm font-medium text-gray-300 mb-1">
+                            Token
+                        </label>
+                        <input
+                            type="text"
+                            id="token"
+                            name="token"
+                            value={formData.token}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </div>
                 </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label htmlFor="region" className="block text-sm font-medium text-gray-300 mb-1">
-                        Region (Optional)
-                    </label>
-                    <input
-                        type="text"
-                        id="region"
-                        name="region"
-                        value={formData.region}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="tenantId" className="block text-sm font-medium text-gray-300 mb-1">
+                            Tenant ID
+                        </label>
+                        <input
+                            type="number"
+                            id="tenantId"
+                            name="tenantId"
+                            value={formData.tenantId}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="deviceId" className="block text-sm font-medium text-gray-300 mb-1">
+                            Device ID
+                        </label>
+                        <input
+                            type="text"
+                            id="deviceId"
+                            name="deviceId"
+                            value={formData.deviceId}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </div>
                 </div>
-                <div>
-                    <label htmlFor="token" className="block text-sm font-medium text-gray-300 mb-1">
-                        Token
-                    </label>
-                    <input
-                        type="text"
-                        id="token"
-                        name="token"
-                        value={formData.token}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    />
-                </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label htmlFor="tenantId" className="block text-sm font-medium text-gray-300 mb-1">
-                        Tenant ID
-                    </label>
-                    <input
-                        type="number"
-                        id="tenantId"
-                        name="tenantId"
-                        value={formData.tenantId}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    />
-                </div>
-                <div>
-                    <label htmlFor="deviceId" className="block text-sm font-medium text-gray-300 mb-1">
-                        Device ID
-                    </label>
-                    <input
-                        type="text"
-                        id="deviceId"
-                        name="deviceId"
-                        value={formData.deviceId}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    />
-                </div>
-            </div>
-            <div className="flex space-x-4">
-                <button
-                    type="submit"
-                    className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-                >
-                    Submit
-                </button>
-                <button
-                    type="button"
-                    onClick={handleReset}
-                    className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-                >
-                    Clear
-                </button>
-            </div>
-
-
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label htmlFor="tokenForMapping" className="block text-sm font-medium text-gray-300 mb-1">
-                        Token for Mapping
-                    </label>
-                    <input
-                        type="text"
-                        id="tokenForMapping"
-                        name="tokenForMapping"
-                        value={tokenForMapping}
-                        onChange={(e) => setTokenForMapping(e.target.value)}
-                        className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                <div className="flex space-x-4">
+                    <button
+                        type="submit"
+                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                    >
+                        Submit
+                    </button>
                     <button
                         type="button"
-                        onClick={() => setTokenForMapping("")}
-                        className="mt-2 px-3 py-1 text-xs font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        onClick={handleReset}
+                        className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900"
                     >
-                        Clear Input
+                        Clear
                     </button>
                 </div>
-                <div>
-                    <label htmlFor="deviceIdAgain" className="block text-sm font-medium text-gray-300 mb-1">
-                        Device ID for Mapping
-                    </label>
-                    <input
-                        type="text"
-                        id="deviceIdAgain"
-                        name="deviceIdAgain"
-                        value={idForMapping}
-                        onChange={(e) => setIdForMapping(e.target.value)}
-                        className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+
+                <br></br>
+                <br></br>
+                <br></br>
+                <br></br>
+                <br></br>
+                <br></br>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="tokenForMapping" className="block text-sm font-medium text-gray-300 mb-1">
+                            Token for Mapping
+                        </label>
+                        <input
+                            type="text"
+                            id="tokenForMapping"
+                            name="tokenForMapping"
+                            value={tokenForMapping}
+                            onChange={(e) => setTokenForMapping(e.target.value)}
+                            className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setTokenForMapping("")}
+                            className="mt-2 px-3 py-1 text-xs font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        >
+                            Clear Input
+                        </button>
+                    </div>
+                    <div>
+                        <label htmlFor="deviceIdAgain" className="block text-sm font-medium text-gray-300 mb-1">
+                            Device ID for Mapping
+                        </label>
+                        <input
+                            type="text"
+                            id="deviceIdAgain"
+                            name="deviceIdAgain"
+                            value={idForMapping}
+                            onChange={(e) => setIdForMapping(e.target.value)}
+                            className="w-full px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setIdForMapping("")}
+                            className="mt-2 px-3 py-1 text-xs font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        >
+                            Clear Input
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex justify-end">
                     <button
                         type="button"
-                        onClick={() => setIdForMapping("")}
-                        className="mt-2 px-3 py-1 text-xs font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        onClick={handleMapping}
+                        className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900"
                     >
-                        Clear Input
+                        Run Mapping
                     </button>
                 </div>
-            </div>
 
-            <div className="flex justify-end">
-                <button
-                    type="button"
-                    onClick={handleMapping}
-                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-                >
-                    Run Mapping
-                </button>
-            </div>
+                {/* Display the mapping message */}
+                {mappingMessage && (
+                    <div className="mt-4 text-sm text-gray-300">
+                        {mappingMessage}
+                    </div>
+                )}
 
-            {/* Display the mapping message */}
-            {mappingMessage && (
-                <div className="mt-4 text-sm text-gray-300">
-                    {mappingMessage}
-                </div>
-            )}
-
-            {/* Display the confirmation message */}
-            {confirmationMessage && (
-                <div className="mt-4 text-sm text-gray-300">
-                    {confirmationMessage}
-                </div>
-            )}
-        </form>
+                {/* Display the confirmation message */}
+                {confirmationMessage && (
+                    <div className="mt-4 text-sm text-gray-300">
+                        {confirmationMessage}
+                    </div>
+                )}
+            </form>
+            <button onClick={() => toast.info("This is a test notification!")}>
+                Test Toast
+            </button>
+            <ToastContainer />
+        </>
     )
 }
 
