@@ -152,7 +152,7 @@ export default function StoreForm() {
             if (response.data.success === "ok") {
                 const message = response.data.data;
                 setMappingMessage(message);
-                toast.success("Device mapping updated successfully!"); // Success toast
+                toast.success("Device mapping updated successfully!", message); // Success toast
             } else {
                 setMappingMessage("An error occurred while updating devices.");
                 toast.error("An error occurred while updating devices."); // Error toast
