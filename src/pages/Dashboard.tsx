@@ -2,8 +2,8 @@
 
 import type React from "react"
 import { useState } from "react"
-// import axios from "axios"
-const axios = require('axios');
+import axios from "axios"
+// const axios = require('axios');
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
